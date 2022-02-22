@@ -1,3 +1,3 @@
-####### Characterization of STR-MPS stutters
+# Characterization of STR-MPS stutters
 
 
