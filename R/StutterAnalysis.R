@@ -1,7 +1,24 @@
 
-#### Aim of the script: Analyse STR-MPS stutter artefacts
-
-# Parameters: Minimum read count is 10 (T = 10) reads and Hb (Heterozygote balance) > 0.3
+#' @title StutterAnalysis
+#'
+#' @author Maria Martin Agudo <maagud.at.ous-hf.no>
+#'
+#' @description Analyse STR-MPS stutter artefacts
+#'
+#' @details Analysis of initial data frame obtained from lusSTR.
+#' Final stutter table will be processed in the next stage.
+#'
+#' @param MinimumReads A numerical value for minimum read counts
+#' @param Hb_Threshold Minimum vaue of heterozygote balance
+#'
+#' @return A final data frame with stutter sequences
+#' @export
+#'
+#' @importFrom dplyr tidyr readxl tidyverse
+#'
+#' @examples
+#'
+#'
 
 ## 1. Load packages, source helpfunctions and export and create the initial data frame:
 
