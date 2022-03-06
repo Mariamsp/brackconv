@@ -1,18 +1,17 @@
 
 ################################################################################
-# HELPFUNCTION 5
+# HELPFUNCTION
 
-##### Function 1 out 2 for quality check. Compares short bracket format to original
+##### Compares short bracket format to original
 ##### full length sequence
 
 #' @title getMotifReps
 #'
 #' @author Oyvind Bleka <oyvble.at.hotmail.com>
 #'
-#' @description Function 1 out 2 for quality check.
-#' Get motifs and repetitions from short bracket format
+#' @description Get motifs and repetitions from short bracket format
 #'
-#' @details Helpfunction 5. Obtains motif and repeats from short bracket format
+#' @details Help function. Obtains motif and repeats from short bracket format
 #'
 #' @param tmp A string with bracket format e.g. "[ATCG]6"
 #' @param brksign Bracket signs to use

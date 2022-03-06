@@ -1,6 +1,6 @@
 
 ################################################################################
-# HELPFUNCTION 7
+# HELPFUNCTION
 
 ##### Function for creating the final table with stutter information. It will
 ##### traverse through all the sequences (short bracket format) and compare each
@@ -12,14 +12,15 @@
 #'
 #' @description Creates final table with stutter information
 #'
-#' @details Helpfunction 7. Takes as input the short bracket format sequences.
+#' @details Help function. Takes as input the short bracket format sequences.
 #' Compares one sequence with the remaining sequences by extracting and comparing
 #' their repetitive motifs. If equal, then number of repetitions of the motifs
 #' will be compared and variations will be considered as stutters.
-#' 
+#'
 #' NOTE: STUTTER PRODUCTS ARE ASSUMED TO NOT EXCEED THE COMPARING SEQUENCE
 #'
-#' @param seqBrack string of characters: STRs sequence converted into bracket format
+#' @param seqBrack matrix with STRs sequence converted into bracket format, reads, allele_type,
+#' Sequence ID and AT-content
 #' @param addSeq1Coverage TRUE condition for adding Seq1 read counts ("coverage") to the
 #' final stutter table
 #' @param addSeq2Coverage TRUE condition for adding Seq2 read counts to the final
@@ -34,68 +35,15 @@
 #'
 #' @examples
 #' \dontrun{
-#' seq1 = "[AATG]6 AGGG AAAT AAGG"
-#' seq2 = "[AATG]7 AGGG AAAT AAGG"
-#' getMotifStutterInfo(c(seq1,seq2))
-#' 
-#' seq1read = c(30, "Stutter")
-#' seq2read = c(400, "Parental")
-#' names(seq1read) = seq1
-#' names(seq2read) = seq2
-#' getMotifStutterInfo(c(seq1read,seq2read))
-#' }
-#' 
+#' bracketformat <- c("[ATCT]12","[ATCT]10", "[ATCT]11", "[ATCT]9")
+#' reads <- c(869, 60, 28, 23)
+#' allele_type <- c(1,2,3,3)
+#' Sequence_ID <- c(227760, 227761, 227762,227763)
+#' AT_contentVar <- c(75.00, 33.33, 64.00, 77.33)
+#' seqBrack <- rbind(reads, allele_type, Sequence_ID, AT_contentVar)
+#' colnames(seqBrack) <- bracketformat
+#' getMotifStutterInfo(seqBrack)}
 
-## Parental = 1
-## Stutter = 2
-# seq1 = "[AATG]6 AGGG AAAT AAGG"
-# seq2 = "[AATG]7 AGGG AAAT AAGG"
-# seq1read = c(30, 2)
-# seq2read = c(400, 1)
-# names(seq1read) = seq1
-# names(seq2read) = seq2
-
-
-#Comment after test-------------------------------------------------------------
-# source("getMotifReps.R")
-# # bracketformat <- c("[AATG]6 AGGG AAAT AAGG","[AATG]7 AGGG AAAT AAGG")
-# # reads <- c(30, 400)
-# # allele_tipo <- c(2, 1)
-# # seqBrack <- rbind(reads, allele_tipo)
-# # colnames(seqBrack) <- bracketformat
-# 
-# # bracketformat <- c("CA [CACA]2 CCTA [TCTA]14","CA [CACA]2 TCTA GCTA [TCTA]11")
-# # reads <- c(374, 12)
-# # allele_tipo <- c(1, 2)
-# # seqBrack <- rbind(reads, allele_tipo)
-# # colnames(seqBrack) <- bracketformat
-# # 
-# bracketformat <- c("[AGAA]13 AAAG AGAG AG","[AGAA]22 AAAG AGAG AG")
-# reads <- c(374, 12)
-# allele_tipo <- c(1, 2)
-# Sequence_ID <- c(450, 452)
-# seqBrack <- rbind(reads, allele_tipo,Sequence_ID)
-# colnames(seqBrack) <- bracketformat
-# 
-# bracketformat <- c("CT CTCT TTCT TCCT CTCT [CCTT]11 CCTA CCTT CTTT CCTT","CT CTCT TTCT TCCT CTCT [CCTT]10 CCTA CCTT CTTT CCTT", "CT CTCT [TTCT]2 CTCT [CCTT]11 CCTA CCTT CTTT CCTT")
-# reads <- c(869, 60, 28)
-# allele_tipo <- c(1,3,3)
-# Sequence_ID <- c(227760, 227761, 227762)
-# seqBrack <- rbind(reads, allele_tipo,Sequence_ID)
-# colnames(seqBrack) <- bracketformat
-#
-# bracketformat <- c("[ATCT]12","[ATCT]10", "[ATCT]11", "[ATCT]9")
-# reads <- c(869, 60, 28, 23)
-# allele_tipo <- c(1,2,3,3)
-# Sequence_ID <- c(227760, 227761, 227762,227763)
-# AT_contentVar <- c(75.00, 33.33, 64.00, 77.33)
-# seqBrack <- rbind(reads, allele_tipo, Sequence_ID, AT_contentVar)
-# seqBrack <- rbind(reads, allele_tipo, Sequence_ID)
-# colnames(seqBrack) <- bracketformat
-# 
-# addSeq1Coverage=TRUE;addSeq2Coverage=TRUE;addSeq1allele_type= TRUE;addSeq2allele_type=TRUE;addStutterProportion=TRUE;addSeq1SequenceID=TRUE;addSeq2SequenceID=TRUE;
-# addSeq1ATcontent=TRUE;addSeq2ATcontent=TRUE;addStutterProportion=TRUE
-# 
 #-------------------------------------------------------------------------------
 getMotifStutterInfo = function(seqBrack,addSeq1Coverage=TRUE,addSeq2Coverage=TRUE,addSeq1allele_type= TRUE,
                                addSeq2allele_type=TRUE,addSeq1SequenceID=TRUE,addSeq2SequenceID=TRUE,
@@ -117,7 +65,7 @@ getMotifStutterInfo = function(seqBrack,addSeq1Coverage=TRUE,addSeq2Coverage=TRU
     seqBrack = colnames(seqBrack)
   } #seqBrack is already bracket
 
-  stuttTab = numeric() #init table 
+  stuttTab = numeric() #init table
   for(xind in seq_len(length(seqBrack))) { #traverse each sequence
     # xind = 1
 
@@ -127,11 +75,11 @@ getMotifStutterInfo = function(seqBrack,addSeq1Coverage=TRUE,addSeq2Coverage=TRU
 
     for(yind in seq_len(length(seqBrack))) { #traverse each other sequence
            # yind = 2
-      
+
       #SKIPPING COMPARING SEQUENCE:
       if(xind==yind) next #skip since same sequence
-      if(!is.null(coverage) && coverage[yind]>=coverage[xind]) next #skip if comparing sequence is STRICTLY LARGER 
-      
+      if(!is.null(coverage) && coverage[yind]>=coverage[xind]) next #skip if comparing sequence is STRICTLY LARGER
+
       #extract info from comparing sequence
       yVector = strsplit(seqBrack[yind]," ")[[1]] #split seq to list
       if(length(xVector) != length(yVector)) next #don't consider comparison if different number of blocks
@@ -146,8 +94,8 @@ getMotifStutterInfo = function(seqBrack,addSeq1Coverage=TRUE,addSeq2Coverage=TRU
         if(xmotif[1]!=ymotif[1]) {
           isComparable = FALSE #The two sequences should not be compared
           break #skip if not same motif
-        } 
-        
+        }
+
         motifdiff = as.integer(ymotif[2]) - as.integer(xmotif[2])  #number of motifs of y compared to x
         if(motifdiff==0) next #don't record if identical number of motifs
 
@@ -157,16 +105,13 @@ getMotifStutterInfo = function(seqBrack,addSeq1Coverage=TRUE,addSeq2Coverage=TRU
       if(!isComparable || length(diffVector)==0) next
       diffVector = paste0(diffVector,collapse="/") #collapse if several differences
 
-      #s1 = seqBrack[xind]  #seq name
-      #s2 = seqBrack[yind] #seq name
-      #newrow = c(s1,s2,diffVector)
       newrow = c(xind,yind,diffVector)
       stuttTab = rbind(stuttTab , newrow) #add table
     }
   }
   if(length(stuttTab)==0) return(NULL)
   colnames = c("Seq1","Seq2","MotifDifference")
-  
+
   #whether to insert coverage of seq1:
   if(addSeq1Coverage) {
     colnames = c(colnames,"Seq1Counts")
@@ -181,35 +126,35 @@ getMotifStutterInfo = function(seqBrack,addSeq1Coverage=TRUE,addSeq2Coverage=TRU
     stuttTab = cbind(stuttTab,NA) #add column
     if(!is.null(coverage)) stuttTab[,ncol(stuttTab)] = coverage[as.integer(stuttTab[,2])]
   }
-  
+
   #whether to insert allele_type of seq1:
   if(addSeq1allele_type) {
     colnames = c(colnames,"Seq1Allele_Type")
     stuttTab = cbind(stuttTab,NA) #add column
     if(!is.null(allele_type)) stuttTab[,ncol(stuttTab)] = allele_type[as.integer(stuttTab[,1])]
   }
-  
+
   #whether to insert allele_type of seq2:
   if(addSeq2allele_type) {
     colnames = c(colnames,"Seq2Allele_Type")
     stuttTab = cbind(stuttTab,NA) #add column
     if(!is.null(allele_type)) stuttTab[,ncol(stuttTab)] = allele_type[as.integer(stuttTab[,2])]
   }
-  
+
   #whether to insert SequenceID of seq1:
   if(addSeq1SequenceID) {
     colnames = c(colnames,"Seq1SequenceID")
     stuttTab = cbind(stuttTab,NA) #add column
     if(!is.null(SequenceID)) stuttTab[,ncol(stuttTab)] = SequenceID[as.integer(stuttTab[,1])]
   }
-  
+
   #whether to insert SequenceID of seq2:
   if(addSeq2SequenceID) {
     colnames = c(colnames,"Seq2SequenceID")
     stuttTab = cbind(stuttTab,NA) #add column
     if(!is.null(SequenceID)) stuttTab[,ncol(stuttTab)] = SequenceID[as.integer(stuttTab[,2])]
   }
-  
+
   #whether to insert ATcontent of seq1:
   if(addSeq1ATcontent) {
     colnames = c(colnames,"Seq1ATcontent")
@@ -244,7 +189,7 @@ getMotifStutterInfo = function(seqBrack,addSeq1Coverage=TRUE,addSeq2Coverage=TRU
   stuttTab[,2] = seqBrack[as.integer(stuttTab[,2])]
   colnames(stuttTab) = colnames
   rownames(stuttTab)=NULL
-  
+
   #Final data frame
   df = data.frame(stuttTab)#,stringsAsFactors = FALSE)
   if(ncol(df)>3) { #if coverage is given

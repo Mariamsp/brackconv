@@ -1,0 +1,150 @@
+---
+title: "Part1_StutterAnalysisWorkflow"
+author: "Maria Martin Agudo"
+date: '2022-03-06'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+###### Stutter characterization anlysis workflow
+
+#### The study
+
+This analytical workflow was designed to perform the study described in the manuscript. Multiple stutter types were characterized based on MPS data from single source samples, using the Verogen ForenSeq™ DNA Signature Prep kit. A beta regression model was used to investigate the relationship between the stutter proportion and candidate explanatory variables. 
+
+In this markdown document, it is explained step by step how to create and prepare a data table with all the stutter information needed for the second part: statistical analysis with beta regression.
+
+#### Bioinfomatic tools
+
+DNA sequences were processed as follows:
+
+1. *FastQ files* were retrieve from the UAS server.
+
+2. *STRait $Razor^1$ v3.0* was used for allele identification. Source code and details on this software can be obtained from github in: https://github.com/Ahhgust/STRaitRazor 
+
+3. STRait Razor output txt file was then processed with *lusSTR v0.3*. This is a bioinformatic tool written in Python that converts DNA sequences from NGS data into different formats. Also, the analysis returns different allele designations. The tool and more information is available in https://github.com/bioforensics/lusSTR.
+
+An example of a final output txt file from lusSTR "lusSTR_ExampleFile.txt" can be found on the package folder ins/extdata. To access it:
+
+```{r}
+
+lusSTR_ExampleFile <- system.file("extdata", "lusSTR_ExampleFile.txt", package = "brackconv")
+
+# Or:
+library(brackconv)
+path = path.package("brackconv") #get package install folder
+filePath = paste0("inst/extdata/lusSTR_ExampleFile.txt") # lusSTR file path
+lusSTR_ExampleFile = paste0(path, filePath) # create object with file 
+```
+
+
+#### Step 1. Load the brackconv package with the functions 
+
+```{r}
+library(brackconv)
+# projname = "MPSproto_stutterCharPaper" 
+# path = path.package("MPSproto") #get package install folder
+# datfold = paste0(path,"/",projname,"/data")
+# calibfile = paste0(datfold,"/calibrated_",projname) #file name of the calibrated object
+# datfn_read = paste0(datfold,"/data_sumPerMarker.csv") #used for marker efficiency calibration
+# datfn_stuttermodel = paste0(datfold,"/calibrated_StutterCoef.csv") #the stutter model is already calibrated
+# datfn_noise = paste0(datfold,"/data_noise.csv") #used for noise model calibration (part 1)
+# datfn_stutterFew = paste0(datfold,"/data_excludedStutters.csv") #used for noise model calibration (part 2)
+```
+
+
+#### Step 2. Read the lusSTR file with your data
+
+```{r}
+readlusSTRFile <- function(pathToYourFile,yourlusSTRFile) {
+  initial_df <- read.table(paste0(path,lusSTRFile), sep="\t", header = TRUE)
+
+# Create new variable with only digits from SampleID, create Run variable with values 3 and 4:
+  initial_df <- initial_df %>%
+    mutate(SampleNumber = as.numeric(gsub("[^[:digit:]]", "", SampleID))) %>%
+    select(-SampleNumber)
+}
+```
+
+
+#### Step 3. Initial working data frame with minimum reads of 10 (T = 10) and Hb = 30. Classification of sequences noise, allele, or stutter
+
+```{r}
+# Parameter settings
+MinimumReads <- 10
+Hb_Threshold <- 30
+# Run function and create list with output data frames
+dfList_initialdf <- setNames(getInitialDataframe(initial_df,MinimumReads,Hb_Threshold), c("initial_df2","noise_underMinimumReads")) # setNames define the names of the data frames inside of the list
+list2env(dfList_initialdf,.GlobalEnv) # list2env: From a named list x, create an environment containing all list components as objects, or "multi-assign" from x into a pre-existing environment
+# Allele 2 drop outs quality check
+dfList_allele2DropOuts <- setNames(getAllele2Drops(initial_df2, Hb_Threshold), c("possibleAllele2_DropOuts","initial_df2"))
+list2env(dfList_allele2DropOuts,.GlobalEnv)
+```
+
+
+#### Step 4. Create the stutter table
+
+```{r}
+# Stutter table
+dfListStutterTab <- setNames(initialStutterTable(initial_df2), c("stutterInfoTable","included_SequencesDF","excluded_SequencesDF")) 
+list2env(dfListStutterTab,.GlobalEnv)
+```
+
+
+#### Step 5. Remove Allele 2 in n-1 position and outputs new stutter table
+
+```{r}
+# Parameter settings
+Hb_min <- Hb_Threshold
+Hb_max <- 50
+# New stutter table
+dfListFinalStutterTab <- setNames(getStuttersAllele2Pos(stutterInfoTable,initial_df2,Hb_min, Hb_max), c("allele1StutterPosMin_MaxHb","stutterInfoTable_Final", "initial_df2"))
+list2env(dfListFinalStutterTab,.GlobalEnv)
+```
+
+
+#### Step 6. Add new variable "inclusion_stutterTab" to the full data frame for summarising the data
+
+```{r}
+dfList_Variables <- setNames(AddVariables(initial_df2,included_SequencesDF,excluded_SequencesDF), c("TotalExcluded","TotalIncluded","ExludedPriori","initial_df2"))
+list2env(dfList_Variables,.GlobalEnv)
+```
+
+
+#### Step 7. Additional filtering of stutters
+
+# Obtains ambiguous, unambiguous stutters, frequent and infrequent, where:
+# a. Ambiguous stutters can originate from both parental alleles 
+# b. Unambiguous stutters are those stutters that can only be originated from one parental allele
+# c. Frequent stutters are the most observed stutter types: n-1, n+1, n-2, n+2 and *n0?*
+# d. Infrequent stutters are complicated stutters eg. n-3 or n-4
+
+
+```{r}
+# Stutter filtering. Obtains new data frames:
+dfList_StutterFiltering <- setNames(selectStutters(stutterInfoTable_Final), c("ambiguous_stutter","unambiguous_stutter", "infrequent_stutters", "frequent_stutters")) 
+list2env(dfList_StutterFiltering,.GlobalEnv) 
+```
+
+
+#### Step 8. Add variables LUS and isLUS(MotiType)
+
+```{r}
+final_StutterTable <- getLUS(frequent_stutters)
+```
+
+
+#### Step 9. Add variables Complexity and AT-content
+
+```{r}
+final_StutterTable <- AddComplexATContVar(final_StutterTable,STR_complexity_df)
+```
+
+
+##### References:
+
+1. Woerner AE, King JL, Budowle B. Fast STR allele identification with STRait Razor 3.0. Forensic Sci Int Genet. 2017 Sep;30:18–23. 
